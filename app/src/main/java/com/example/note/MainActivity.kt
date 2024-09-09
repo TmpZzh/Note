@@ -46,7 +46,8 @@ class MainActivity : AppCompatActivity() {
         button3.setOnClickListener { writeLog("猛打方向") }
         button4.setOnClickListener { writeLog("异常退出自动驾驶") }
         button5.setOnClickListener { writeLog("异常刹车") }
-        button6.setOnClickListener { showInputDialog() }
+//        button6.setOnClickListener { showInputDialog() }
+        button6.setOnClickListener { showInputDialog(System.currentTimeMillis()) }
         undoButton.setOnClickListener { undoButton.setOnClickListener { showUndoConfirmationDialog() } }
         copyButton.setOnClickListener { copyLogToClipboard() }
 
@@ -60,10 +61,25 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun writeLog(message: String) {
+//    private fun writeLog(message: String) {
+//        try {
+//            val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault()).format(Date())
+//            val logEntry = "$timestamp: $message\n"
+//
+//            FileWriter(logFile, true).use { writer ->
+//                writer.append(logEntry)
+//            }
+//            updateLogDisplay()
+//        } catch (e: Exception) {
+//            e.printStackTrace()
+//            showToast("保存日志失败: ${e.message}")
+//        }
+//    }
+    private fun writeLog(message: String, timestamp: Long = System.currentTimeMillis()) {
         try {
-            val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault()).format(Date())
-            val logEntry = "$timestamp: $message\n"
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
+            val formattedTimestamp = dateFormat.format(Date(timestamp))
+            val logEntry = "$formattedTimestamp: $message\n"
 
             FileWriter(logFile, true).use { writer ->
                 writer.append(logEntry)
@@ -75,7 +91,25 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun showInputDialog() {
+//    private fun showInputDialog() {
+//        val input = EditText(this)
+//        input.inputType = InputType.TYPE_CLASS_TEXT
+//
+//        AlertDialog.Builder(this)
+//            .setTitle("输入日志内容")
+//            .setView(input)
+//            .setPositiveButton("确定") { _, _ ->
+//                val logContent = input.text.toString()
+//                if (logContent.isNotEmpty()) {
+//                    writeLog("其他: $logContent")
+//                } else {
+//                    showToast("日志内容不能为空")
+//                }
+//            }
+//            .setNegativeButton("取消", null)
+//            .show()
+//    }
+    private fun showInputDialog(timestamp: Long) {
         val input = EditText(this)
         input.inputType = InputType.TYPE_CLASS_TEXT
 
@@ -85,7 +119,7 @@ class MainActivity : AppCompatActivity() {
             .setPositiveButton("确定") { _, _ ->
                 val logContent = input.text.toString()
                 if (logContent.isNotEmpty()) {
-                    writeLog("其他: $logContent")
+                    writeLog("其他: $logContent", timestamp)
                 } else {
                     showToast("日志内容不能为空")
                 }
