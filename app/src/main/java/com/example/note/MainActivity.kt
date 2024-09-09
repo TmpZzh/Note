@@ -5,6 +5,8 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.os.Bundle
 import android.text.InputType
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ScrollView
@@ -186,4 +188,108 @@ class MainActivity : AppCompatActivity() {
     private fun showToast(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.main_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_clear_logs -> {
+                clearLogs()
+                true
+            }
+            R.id.add_custom_buttons -> {
+//                TODO
+                true
+            }
+            R.id.fault_code_analysis -> {
+                parseFaultCodes()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun clearLogs() {
+        // 实现清空日志的逻辑
+        AlertDialog.Builder(this)
+            .setTitle("确认清空")
+            .setMessage("您确定要清空所有日志吗？")
+            .setPositiveButton("确定") { _, _ ->
+                logFile.writeText("")
+                updateLogDisplay()
+                showToast("日志已清空")
+            }
+            .setNegativeButton("取消", null)
+            .show()
+    }
+
+    private fun parseFaultCodes() {
+        val input = EditText(this)
+        input.inputType = InputType.TYPE_CLASS_NUMBER
+        input.hint = "请输入故障码"
+
+        AlertDialog.Builder(this)
+            .setTitle("故障码解析")
+            .setView(input)
+            .setPositiveButton("确认") { _, _ ->
+                val inputText = input.text.toString()
+                val number = inputText.toIntOrNull()
+                if (number != null) {
+                    analyzeFaultCode(number)
+                } else {
+                    showToast("请输入有效的数字")
+                }
+            }
+            .setNegativeButton("取消", null)
+            .show()
+    }
+
+    private fun analyzeFaultCode(num: Int) {
+        val faultCodes = listOf(
+            0b1 to "HCU is not ready!",
+            0b10 to "EPS is not ready!",
+            0b100 to "IBC is not ready!",
+            0b1000 to "No D Gear!",
+            0b10000 to "StandStill!车辆静止",
+            0b100000 to "Not Belt",
+            0b1000000 to "Not Driver",
+            0b10000000 to "Driver Intervention！驾驶员介入",
+            0b100000000 to "Control Error！Control状态异常",
+            0b1000000000 to "Control TimeStamp Error！Control时间戳异常",
+            0b10000000000 to "AI Button is not pressed！ai按键未按下"
+        )
+
+        var faultCount = 0
+        writeAnalysisResult("==========故障码解析结果==========")
+        faultCodes.forEach { (mask, message) ->
+            if (num and mask != 0) {
+                writeAnalysisResult(message)
+                faultCount++
+            }
+        }
+
+        if (faultCount == 0) {
+            writeAnalysisResult("No Error")
+        } else {
+            writeAnalysisResult("总共检测到 $faultCount 个故障")
+        }
+        writeAnalysisResult("==========故障码解析结果==========")
+    }
+
+    private fun writeAnalysisResult(message: String) {
+        try {
+            val logEntry = "$message\n"
+            FileWriter(logFile, true).use { writer ->
+                writer.append(logEntry)
+            }
+            updateLogDisplay()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            showToast("保存解析结果失败: ${e.message}")
+        }
+    }
+
 }
