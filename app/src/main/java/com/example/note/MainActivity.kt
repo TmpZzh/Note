@@ -119,7 +119,7 @@ class MainActivity : AppCompatActivity() {
             .setPositiveButton("确定") { _, _ ->
                 val logContent = input.text.toString()
                 if (logContent.isNotEmpty()) {
-                    writeLog("其他: $logContent", timestamp)
+                    writeLog(logContent, timestamp)
                 } else {
                     showToast("日志内容不能为空")
                 }
